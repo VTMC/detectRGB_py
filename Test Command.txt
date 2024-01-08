@@ -1,0 +1,23 @@
+- S21U
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_S21U.dng
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_S21U_onlyTiff.tiff
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_S21U_whiteBalanced.tiff
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_S21U_averageWhiteBalanced.tiff
+
+1314 1524/1404 1524/1486 1524/1578 1524/1666 1524/1756 1524/1838 1524/1930 1524/2014 1524/2102 1524/2184 1524
+
+- A80
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_A80.dng
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_A80_onlyTiff.tiff
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_A80_whiteBalanced.tiff
+
+E:/VTMC_GitHub/StoredProject_LibRaw_0.21.2/StoredProject_LibRaw_0.21.2/LibRaw-0.21.2/testFile/test_A80_averageWhiteBalanced.tiff
+
+1366 1478/1453 1478/1534 1478/1617 1478/1698 1478/1782 1478/1857 1478/1944 1478/2025 1478/2108 1478/2190 1478

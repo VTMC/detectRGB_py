@@ -23,11 +23,20 @@ img = cv2.imread(path)
 #     cv2.drawContours(img, [contours[i]], 0, (0, 0, 255), 2)
 #     print(i, hierarchy[0][i])
 
+# revise value
+x_plus = 100
+# x_plus = 0
+
 # draw Rectangle
 x = 909
 y = 1149
 w = 1165
 h = 1686
+
+# x = x + (x_plus/2 - 1)
+x = x + x_plus
+w = w - x_plus*2
+
 cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
 
 # resize img

@@ -1,9 +1,11 @@
+import os
+
 import customtkinter as ctk
 from tkinter import filedialog
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageTk
 
 class ImageProcessingApp(ctk.CTk):
     def __init__(self):
@@ -15,12 +17,15 @@ class ImageProcessingApp(ctk.CTk):
         self.THRESHOLD_TYPES = ["BINARY", "BINARY_INVERTED", "TRUNCATE", "TO_ZERO", "TO_ZERO_INVERTED"]
         self.THRESHOLD_OPTIONS = ["None","OTSU", "TRIANGLE"]
         self.ADAPTIVE_METHODS = ["MEAN_C", "GAUSSIAN_C"]
+        self.TAB1_NAME = "Threshold"
+        self.TAB2_NAME = "Adaptive Threshold"
         
         self.path = None
+        self.read_fileName = None
         self.original_image = None
         self.processed_image = None
         
-        self.zoom_scale = 1.0
+        self.zoom_scale = 0.1
         self.image_x = 0
         self.image_y = 0
         self.drag_x = 0
@@ -83,8 +88,8 @@ class ImageProcessingApp(ctk.CTk):
         )
         
         # 탭 추가
-        self.tab1 = self.tabView.add("Threshold")
-        self.tab2 = self.tabView.add("Adaptive Threshold")
+        self.tab1 = self.tabView.add(self.TAB1_NAME)
+        self.tab2 = self.tabView.add(self.TAB2_NAME)
         
         self.tab1_content()
         self.tab2_content()
@@ -107,7 +112,8 @@ class ImageProcessingApp(ctk.CTk):
         
         self.gaussianBlurCheckbox = ctk.CTkCheckBox(
             self.temp_frame_1,
-            text="Gaussian Blur Apply"
+            text="Gaussian Blur Apply",
+            command=self.on_mode_toggle
         )
         self.gaussianBlurCheckbox.grid(row=0,column=0,padx=5,pady=10,sticky="ew")
         
@@ -122,19 +128,29 @@ class ImageProcessingApp(ctk.CTk):
         )
         self.image_label.pack(padx=20, pady=10, fill="both", expand=True)
         
-        # self.image_canvas = ctk.CTkCanvas(
-        #     self,
-        #     background="gray85",
-        #     highlightthickness=0,
-        #     visibility="hidden"
-        # )
+        self.image_canvas = ctk.CTkCanvas(
+            self,
+            background="gray85",
+            highlightthickness=0,
+        )
         
-        # self.image_canvas.pack(
-        #     padx=20,
-        #     pady=10,
-        #     fill="both",
-        #     expand=True
-        # )
+        self.image_canvas.pack_forget() #UI 숨김 (Pack - Invisible)
+        
+        # self.image_canvas.pack(padx=20, pady=10, fill="both", expand=True) #UI 그릴 때 사용 (Pack - Visible)
+        
+        """+ａ
+        # 숨기기
+        self.widget.grid_remove()
+
+        # 원래 위치에 다시 표시
+        self.widget.grid()
+        """
+        
+        self.image_canvas.bind("<ButtonPress-1>", self.start_drag)
+        self.image_canvas.bind("<B1-Motion>", self.drag_image)
+        self.image_canvas.bind("<MouseWheel>", self.zoom_image)
+        
+        
         
     def tab1_content(self):
         # Threshold 임계값 선택 가능한 프레임
@@ -436,9 +452,9 @@ class ImageProcessingApp(ctk.CTk):
         toggle_value = self.mode_toggle.get()
         
         if toggle_value == 1:
-            if selected_tab == "Threshold":
+            if selected_tab == self.TAB1_NAME:
                 self.threshold_image(self.tab1)
-            elif selected_tab == "Adaptive Threshold":
+            elif selected_tab == self.TAB2_NAME:
                 self.threshold_image(self.tab2)
         else:
             self.show_image(self.original_image)
@@ -462,6 +478,7 @@ class ImageProcessingApp(ctk.CTk):
             return
         
         self.path = selected_path
+        self.read_fileName = os.path.splitext(os.path.basename(self.path))[0]
         self.path_label.configure(text=self.path)
 
         print("선택된 이미지:", self.path)
@@ -469,6 +486,9 @@ class ImageProcessingApp(ctk.CTk):
         self.original_image = self.read_image(self.path)
         
         if self.original_image is None:
+            self.image_canvas.pack_forget()
+            self.image_label.pack(padx=20, pady=10, fill="both", expand=True)
+            
             self.image_label.configure(text="이미지를 읽을 수 없습니다.", image=None)
             return
 
@@ -507,6 +527,9 @@ class ImageProcessingApp(ctk.CTk):
         """
         
         if(self.original_image is None):
+            self.image_canvas.pack_forget()
+            self.image_label.pack(padx=20, pady=10, fill="both", expand=True)
+            
             self.image_label.configure(text="읽어온 이미지가 없습니다.", image=None)
             return
         
@@ -531,6 +554,9 @@ class ImageProcessingApp(ctk.CTk):
                 self.show_image(self.processed_image)
             else:
                 self.processed_image = None
+                self.image_canvas.pack_forget()
+                self.image_label.pack(padx=20, pady=10, fill="both", expand=True)
+                
                 self.image_label.configure(text="Threshold 처리에 실패했습니다.", image=None)
             
             
@@ -548,6 +574,9 @@ class ImageProcessingApp(ctk.CTk):
                 self.show_image(self.processed_image)
             else:
                 self.processed_image = None
+                self.image_canvas.pack_forget()
+                self.image_label.pack(padx=20, pady=10, fill="both", expand=True)
+                
                 self.image_label.configure(text="Adaptive Threshold 처리에 실패했습니다.", image=None)
         
     def show_image(self, cv_image):
@@ -556,27 +585,27 @@ class ImageProcessingApp(ctk.CTk):
         """
         self.displayed_image = cv_image.copy()
         
-        pil_image = Image.fromarray(cv_image)
+        self.pil_image = Image.fromarray(cv_image)
         
         # 원본 비율을 유지하면서 최대 크기 계산
-        display_width, display_height = self.calculate_display_size(
-            pil_image.width,
-            pil_image.height,
-            max_width=600,
-            max_height=300
-        )
+        # display_width, display_height = self.calculate_display_size(
+        #     self.pil_image.width,
+        #     self.pil_image.height,
+        #     max_width=600,
+        #     max_height=300
+        # )
 
-        self.processed_image = ctk.CTkImage(
-            light_image=pil_image,
-            dark_image=pil_image,
-            size=(display_width, display_height)
-        )
+        # self.processed_image = ctk.CTkImage(
+        #     light_image=self.pil_image,
+        #     dark_image=self.pil_image,
+        #     size=(display_width, display_height)
+        # )
 
-        self.image_label.configure(
-            image=self.processed_image,
-            text=""
-        )
-
+        self.image_label.pack_forget()
+        self.image_canvas.pack(padx=20, pady=10, fill="both", expand=True)
+        
+        self.draw_canvas_image()
+        
         self.save_button.configure(state="normal")
 
     def calculate_display_size(
@@ -606,9 +635,28 @@ class ImageProcessingApp(ctk.CTk):
     def save_image(self):
         if not hasattr(self, "displayed_image"):
             return
+        
+        fileName = self.read_fileName
+        
+        fileName += "_ProcessedImage" if self.mode_toggle.get() == 1 else "_NotProcessedImage"
+        
+        if self.mode_toggle.get() == 1:
+            if self.tabView.get() == self.TAB1_NAME:        
+                fileName += "_Threshold"
+                fileName += "_Value_"+str(self.threshold_value)
+                fileName += "_Type_"+str(self.threshold_type)
+                fileName += "_Option_"+str(self.threshold_option)
+                
+            else:
+                fileName += "_AdaptiveThreshold"
+                fileName += "_AdaptiveMethod_"+str(self.adaptive_method)
+                fileName += "_Type_"+str(self.threshold_type)
+                fileName += "_BlockSize_"+str(self.adaptive_block_size)
+                fileName += "_C_"+str(self.adaptive_C)
 
         save_path = filedialog.asksaveasfilename(
             title="이미지 저장",
+            initialfile=fileName,
             defaultextension=".png",
             filetypes=[
                 ("PNG Files", "*.png"),
@@ -641,6 +689,99 @@ class ImageProcessingApp(ctk.CTk):
             print("이미지 저장 완료:", save_path)
         else:
             print("이미지 저장 실패")
+            
+    # 캔버스 이미지 다루는 함수 모임
+    def draw_canvas_image(self):
+        image_width = max(1, int(self.pil_image.width * self.zoom_scale))
+        
+        image_height = max(1, int(self.pil_image.height * self.zoom_scale))
+        
+        resized_image = self.pil_image.resize(
+            (image_width, image_height),
+            Image.Resampling.LANCZOS
+        )
+        
+        self.canvas_photo = ImageTk.PhotoImage(resized_image)
+        
+        # 캔버스 크기 계산
+        self.image_canvas.update_idletasks()
+        
+        canvas_width = self.image_canvas.winfo_width()
+        canvas_height = self.image_canvas.winfo_height()
+        
+        if self.canvas_image_id is None:
+            # self.image_scale = 0.1
+            self.image_x = (canvas_width - image_width) / 2
+            self.image_y = (canvas_height - image_height) / 2
+            
+            self.canvas_image_id = self.image_canvas.create_image(
+                self.image_x,
+                self.image_y,
+                anchor="nw",
+                image=self.canvas_photo
+            )
+        else:
+            self.image_canvas.itemconfig(
+                self.canvas_image_id,
+                image=self.canvas_photo
+            )
+            
+            self.image_canvas.coords(
+                self.canvas_image_id,
+                self.image_x,
+                self.image_y
+            )
+            
+    def start_drag(self, event):
+        self.drag_x = self.image_canvas.canvasx(event.x)
+        self.drag_y = self.image_canvas.canvasy(event.y)
+        
+    def drag_image(self, event):
+        if self.canvas_image_id is None:
+            return
+        
+        print("drag:", event.x, event.y)
+        
+        current_x = self.image_canvas.canvasx(event.x)
+        current_y = self.image_canvas.canvasy(event.y)
+        
+        move_x = current_x - self.drag_x
+        move_y = current_y - self.drag_y
+        
+        self.image_canvas.move(
+            self.canvas_image_id,
+            move_x,
+            move_y
+        )
+        
+        self.image_x += move_x
+        self.image_y += move_y
+        
+        self.drag_x = current_x
+        self.drag_y = current_y
+        
+    def zoom_image(self, event):
+        if not hasattr(self, "pil_image"):
+            return
+        
+        old_scale = self.zoom_scale
+        
+        if event.delta > 0:
+            self.zoom_scale *= 1.1
+        else:
+            self.zoom_scale /= 1.1
+            
+        self.zoom_scale = max(0.1, min(10.0, self.zoom_scale))
+        
+        print("zoom:", self.zoom_scale)
+        
+        scale_change = self.zoom_scale / old_scale
+        
+        # 마우스 위치 중심으로 확대, 축소
+        self.image_x = event.x - (event.x - self.image_x) * scale_change
+        self.image_y = event.y - (event.y - self.image_y) * scale_change
+
+        self.draw_canvas_image()
 
 # 기본 설정
 ctk.set_appearance_mode("System")  # 시스템 모드 사용

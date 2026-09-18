@@ -653,6 +653,9 @@ class ImageProcessingApp(ctk.CTk):
                 fileName += "_Type_"+str(self.threshold_type)
                 fileName += "_BlockSize_"+str(self.adaptive_block_size)
                 fileName += "_C_"+str(self.adaptive_C)
+                
+            if self.gaussianBlurCheckbox.get() == 1:
+                fileName += "_AddGaussianBlur"
 
         save_path = filedialog.asksaveasfilename(
             title="이미지 저장",
